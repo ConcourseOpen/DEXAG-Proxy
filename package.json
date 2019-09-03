@@ -1,0 +1,20 @@
+{
+  "name": "dexagmulti",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "nedodn",
+  "license": "ISC",
+  "dependencies": {
+    "argv": "0.0.2",
+    "request-promise": "^4.2.4",
+    "truffle-hdwallet-provider": "^1.0.13",
+    "web3": "^1.0.0-beta.55"
+  }
+}

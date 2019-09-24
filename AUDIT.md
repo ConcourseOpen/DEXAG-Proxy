@@ -1,5 +1,7 @@
 # DEXAG Proxy Audit
-De'on Summers (github)[https://github.com/dsummers91)
+De'on Summers (github)[https://github.com/dsummers91]
+
+De'on Summers, currently employed as the lead blockchain developer of Hashed Health for roughly two years, we work on a number of different blockchain protocols. Have worked as a contractor for BlockEra -auditing smart contracts on their behalf. Have been working with ethereum for over three years. Have done seven audits in total, four with BlockEra - Majority have been crowdsale contracts. Others include some state channel, and upgradability contracts. Developed on many languages such as solidity, vyper, LLL, and bamboo.
 
 ## Scope
 

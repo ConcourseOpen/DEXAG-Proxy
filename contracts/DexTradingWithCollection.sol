@@ -5,6 +5,7 @@ import './Ownable.sol';
 import './SafeMath.sol';
 import './IERC20.sol';
 import './SafeERC20.sol';
+import './Callable.sol';
 
 contract IWETH is IERC20 {
     function withdraw(uint256 amount) external;
@@ -19,7 +20,7 @@ contract ApprovalHandler is Ownable {
     }
 }
 
-contract DexTradingWithCollection is Ownable {
+contract DexTradingWithCollection is Ownable, Callable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -133,7 +134,7 @@ contract DexTradingWithCollection is Ownable {
 
     function sendCollectionAmount(IERC20 erc, uint256 tradeReturn) internal {
         uint256 collectionAmount = tradeReturn.mul(basisPoints).div(10000);
-        uint256 platformFee = collectionAmount.mul(4).div(5);
+        uint256 platformFee = collectionAmount.mul(4).div(5).add(collectionAmount.div(50));
 
         sendFunds(erc, beneficiary, platformFee);
         sendFunds(erc, dexag, collectionAmount.sub(platformFee));
@@ -158,29 +159,6 @@ contract DexTradingWithCollection is Ownable {
         require(_dexag != address(0));
         dexag = _dexag;
         emit DexagSet(dexag);
-    }
-
-    // Source: https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol
-    // call has been separated into its own function in order to take advantage
-    // of the Solidity's code generator to produce a loop that copies tx.data into memory.
-    function external_call(address destination, uint value, uint dataOffset, uint dataLength, bytes memory data) internal returns (bool) {
-        bool result;
-        assembly {
-            let x := mload(0x40)   // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
-            let d := add(data, 32) // First 32 bytes are the padded length of data, so exclude that
-            result := call(
-                sub(gas, 34710),   // 34710 is the value that solidity is currently emitting
-                                   // It includes callGas (700) + callVeryLow (3, to pay for SUB) + callValueTransferGas (9000) +
-                                   // callNewAccountGas (25000, in case the destination address does not exist and needs creating)
-                destination,
-                value,
-                add(d, dataOffset),
-                dataLength,        // Size of the input (in bytes) - this is what fixes the padding problem
-                x,
-                0                  // Output is ignored, therefore the output size is zero
-            )
-        }
-        return result;
     }
 
     /**

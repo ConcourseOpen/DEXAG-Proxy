@@ -102,7 +102,7 @@ async function TestUniswapSingle(dryRun) {
 async function TestMulti(dryRun) {
   try {
     const maxDestAmount = '57896044618658097711785492504343953926634992332820282019728792003956564819968';
-    const minConversionRate = '0'; // replace with min conversion rate
+    const minConversionRate = '1'; // replace with min conversion rate
     const hint = web3.utils.utf8ToHex('PERM');
     let kyberData = KyberNetworkProxy.methods.tradeWithHint(DAI,
                                                                  '100000000000000000',

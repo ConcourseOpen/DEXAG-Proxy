@@ -11,9 +11,13 @@ const web3 = new Web3(provider);
 const TRADING_ADDRESS = '0xA540fb50288cc31639305B1675c70763C334953b'; // Address of Trading contract
 const HANDLER = '0x73FbC940ACcDc620c0D6E27e1511D06Cd406228b'; // Address of the Token Handler for the Trading contract
 const DAI = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359';
+const ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'; // stand in for eth address
 const KYBER = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
 const UNISWAP = '0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14';
 const zeroAddress = '0x0000000000000000000000000000000000000000';
+
+const oneToken = '100000000000000000';
+const twoTokens = '200000000000000000'
 
 const TRADING = require('./abis/DexTrading.js');
 const KYBERPROXYABI = require('./abis/KyberNetworkProxy.js');
@@ -25,31 +29,31 @@ const uniswapDai = new web3.eth.Contract(UNISWAPABI);
 
 async function TestKyberSingle(dryRun) {
   try {
-    const maxDestAmount = '57896044618658097711785492504343953926634992332820282019728792003956564819968';
+    const maxDestAmount = '57896044618658097711785492504343953926634992332820282019728792003956564819968'; // arbitrary large number for kyber function call
     const minConversionRate = '1'; // replace with actual minimum conversion rate
     const hint = web3.utils.utf8ToHex('PERM');
     let data = KyberNetworkProxy.methods.tradeWithHint(DAI,
-                                                                 '100000000000000000',
-                                                                 '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                                                 oneToken,
+                                                                 ETH,
                                                                  TRADING_ADDRESS,
                                                                  maxDestAmount,
                                                                  minConversionRate,
-                                                                 '0x440bbd6a888a36de6e2f6a25f65bc4e16874faa9',
+                                                                 '0x440bbd6a888a36de6e2f6a25f65bc4e16874faa9', // Kyber fee address
                                                                  hint).encodeABI();
 
     let offsets = ['0', data.substr(2).length / 2];
     let exchanges = [KYBER];
     let approvals = [zeroAddress];
-    // values is 0 if not sending ETH, otherwise is amount of ETH to be sent
-    let values = ['0'];
+    // etherValues is 0 if not sending ETH, otherwise is amount of ETH to be sent
+    let etherValues = ['0'];
     let tradeData = Trading.methods.trade(DAI, 
-                                          '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-                                          '1000000000000000000',
+                                          ETH,
+                                          oneToken,
                                           exchanges,
                                           approvals,
                                           data,
                                           offsets,
-                                          values,
+                                          etherValues,
                                           '0' /* this is minTokensAmount, set this to the minimum tokens needed to be received after all trades */,
                                           '0' //trade type
                                           ).encodeABI();
@@ -67,7 +71,7 @@ async function TestKyberSingle(dryRun) {
 async function TestUniswapSingle(dryRun) {
   try {
     const minConversionRate = '1'; // replace with actual min conversion rate
-    let data = uniswapDai.methods.tokenToEthSwapInput('1000000000000000000', 
+    let data = uniswapDai.methods.tokenToEthSwapInput(oneToken, 
                                                               minConversionRate, 
                                                              (parseInt(new Date() / 1000) + 60 * 10).toString()).encodeABI(); 
 
@@ -75,16 +79,16 @@ async function TestUniswapSingle(dryRun) {
     let exchanges = [UNISWAP];
 
     let approvals = [zeroAddress];
-    // values is 0 if not sending ETH, otherwise is amount of ETH to be sent
-    let values = ['0'];
+    // etherValues is 0 if not sending ETH, otherwise is amount of ETH to be sent
+    let etherValues = ['0'];
     let tradeData = Trading.methods.trade(DAI, 
-                                          '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-                                          '1000000000000000000',
+                                          ETH,
+                                          oneToken,
                                           exchanges,
                                           approvals,
                                           data,
                                           offsets,
-                                          values,
+                                          etherValues,
                                           '0', /* this is minTokensAmount, this should be minimum tokens needed to be received after all trades */
                                           '0' 
                                           ).encodeABI();
@@ -105,15 +109,15 @@ async function TestMulti(dryRun) {
     const minConversionRate = '1'; // replace with min conversion rate
     const hint = web3.utils.utf8ToHex('PERM');
     let kyberData = KyberNetworkProxy.methods.tradeWithHint(DAI,
-                                                                 '100000000000000000',
-                                                                 '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                                                 oneToken,
+                                                                 ETH,
                                                                  TRADING_ADDRESS,
                                                                  maxDestAmount,
                                                                  minConversionRate,
                                                                  '0x440bbd6a888a36de6e2f6a25f65bc4e16874faa9',
                                                                  hint).encodeABI();
 
-    let uniswapData = uniswapDai.methods.tokenToEthSwapInput('1000000000000000000', 
+    let uniswapData = uniswapDai.methods.tokenToEthSwapInput(oneToken, 
                                                               minConversionRate, 
                                                              (parseInt(new Date() / 1000) + 60 * 10).toString()).encodeABI(); 
 
@@ -129,16 +133,16 @@ async function TestMulti(dryRun) {
       offset = dataArray[i].length / 2 + offsets[i];
       offsets.push(offset);
     }
-    let values = ['0', '0'];
+    let etherValues = ['0', '0'];
 
     let tradeData = Trading.methods.trade(DAI, 
-                                          '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-                                          '2000000000000000000',
+                                          ETH,
+                                          twoTokens,
                                           exchanges,
                                           approvals,
                                           data,
                                           offsets,
-                                          values,
+                                          etherValues,
                                           '0',
                                           '0' ).encodeABI();
     

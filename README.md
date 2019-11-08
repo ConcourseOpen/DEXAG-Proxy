@@ -18,11 +18,5 @@ Exchange options:
   `kyber`
   
   `uniswap`
-  
-  `radar`
-  
-  `eth2dai`
-  
-  `bancor`
-  
+    
   `multi` (tests a 2 DAI-ETH multi dex trade between Uniswap and Kyber, 1 DAI on each DEX)

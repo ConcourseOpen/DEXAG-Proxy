@@ -56,6 +56,8 @@ contract DexTradingWithCollection is Ownable, Callable {
         uint256 tradeType
     ) public payable {
         require(exchanges.length > 0, 'No Exchanges');
+        require(exchanges.length == approvals.length, 'Every exchange must have an approval');
+        require(limitAmount > 0, 'Limit Amount must be set');
 
         // if from is an ERC20, pull tokens from msg.sender
         if (address(from) != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {

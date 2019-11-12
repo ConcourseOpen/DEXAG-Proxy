@@ -46,9 +46,12 @@ contract DexTrading is Ownable {
         uint256 tradeType
     ) public payable {
         require(exchanges.length > 0, 'No Exchanges');
+        require(exchanges.length == approvals.length, 'Every exchange must have an approval set');
+        require(limitAmount > 0, 'Limit Amount must be set');
 
         // if from is an ERC20, pull tokens from msg.sender
         if (address(from) != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {
+            require(msg.value == 0);
             approvalHandler.transferFrom(from, msg.sender, address(this), fromAmount);
         }
 

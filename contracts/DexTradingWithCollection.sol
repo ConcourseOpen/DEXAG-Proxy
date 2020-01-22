@@ -84,6 +84,49 @@ contract DexTradingWithCollection is Ownable, Callable {
         emit Trade(address(from), address(to), tradeReturn, msg.sender, exchanges, tradeType);
     }
 
+    function tradeAndSend(
+        IERC20 from,
+        IERC20 to,
+        address payable recipient,
+        uint256 fromAmount,
+        address[] memory exchanges,
+        address[] memory approvals,
+        bytes memory data,
+        uint256[] memory offsets,
+        uint256[] memory etherValues,
+        uint256 limitAmount,
+        uint256 tradeType
+    ) public payable {
+        require(exchanges.length > 0, 'No Exchanges');
+        require(exchanges.length == approvals.length, 'Every exchange must have an approval');
+        require(limitAmount > 0, 'Limit Amount must be set');
+        require(recipient != address(0), 'Must set a recipient');
+
+        // if from is an ERC20, pull tokens from msg.sender
+        if (address(from) != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {
+            require(msg.value == 0);
+            approvalHandler.transferFrom(from, msg.sender, address(this), fromAmount);
+        }
+
+        // execute trades on dexes
+        executeTrades(from, exchanges, approvals, data, offsets, etherValues);
+
+        // check how many tokens were received after trade execution
+        uint256 tradeReturn = viewBalance(to, address(this));
+        require(tradeReturn >= limitAmount, 'Trade returned less than the minimum amount');
+
+        // return any unspent funds
+        uint256 leftover = viewBalance(from, address(this));
+        if (leftover > 0) {
+            sendFunds(from, msg.sender, leftover);
+        }
+
+        sendCollectionAmount(to, tradeReturn);
+        sendFunds(to, recipient, viewBalance(to, address(this)));
+
+        emit Trade(address(from), address(to), tradeReturn, msg.sender, exchanges, tradeType);
+    }
+
     function executeTrades(
         IERC20 from,
         address[] memory exchanges,
@@ -137,7 +180,7 @@ contract DexTradingWithCollection is Ownable, Callable {
 
     function sendCollectionAmount(IERC20 erc, uint256 tradeReturn) internal {
         uint256 collectionAmount = tradeReturn.mul(basisPoints).div(10000);
-        uint256 platformFee = collectionAmount.mul(4).div(5).add(collectionAmount.div(50));
+        uint256 platformFee = collectionAmount.mul(4).div(5);
 
         sendFunds(erc, beneficiary, platformFee);
         sendFunds(erc, dexag, collectionAmount.sub(platformFee));
@@ -146,7 +189,6 @@ contract DexTradingWithCollection is Ownable, Callable {
     // Contract Settings
 
     function setbasisPoints(uint256 _basisPoints) external onlyOwner {
-        require(_basisPoints >= 1);
         basisPoints = _basisPoints;
         emit BasisPointsSet(basisPoints);
     }

@@ -61,7 +61,6 @@ contract DexTradingWithCollection is Ownable, Callable {
 
         // if from is an ERC20, pull tokens from msg.sender
         if (address(from) != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {
-            require(msg.value == 0);
             approvalHandler.transferFrom(from, msg.sender, address(this), fromAmount);
         }
 
@@ -104,7 +103,6 @@ contract DexTradingWithCollection is Ownable, Callable {
 
         // if from is an ERC20, pull tokens from msg.sender
         if (address(from) != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {
-            require(msg.value == 0);
             approvalHandler.transferFrom(from, msg.sender, address(this), fromAmount);
         }
 
